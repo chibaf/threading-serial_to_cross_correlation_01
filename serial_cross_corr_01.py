@@ -14,7 +14,7 @@ def find_index(c):  # find index of maximum value
 
 def serial_cross_corr(port,speed,q):
   ser=serial.Serial(port,speed)  #open serial port
-  time.sleep(2)
+  time.sleep(1)
   i=0
   d1=np.empty(0)
   d2=np.empty(0)
@@ -22,7 +22,6 @@ def serial_cross_corr(port,speed,q):
     line = ser.readline()
     line2=line.strip().decode('utf-8',errors='replace')
     data = [str(val) for val in line2.split(",")]
-#    print(line2)
     if i<100 and len(data)==11:
       d1=np.append(d1,np.float(data[1]))
       d2=np.append(d2,np.float(data[2]))
@@ -30,7 +29,6 @@ def serial_cross_corr(port,speed,q):
     else:
       if len(d1)!=0:
         c=1.0/(np.linalg.norm(d1)*np.linalg.norm(d2)) 
-#        print(len(d1))
         f1=np.fft.fft(d1)
         f2=np.conjugate(np.fft.fft(d2))
         ff=f1*f2
@@ -40,7 +38,7 @@ def serial_cross_corr(port,speed,q):
   ser.close()
   q.put(ix)
 
-i=1
+i=1;k=1
 q =queue.Queue()  # queue which stores a result of a thread
 th = threading.Thread(target=serial_cross_corr, args=(sys.argv[1],sys.argv[2],q),daemon=True)
 th.start()
@@ -49,13 +47,12 @@ while True:
   if threading.active_count()==1:
     ix = q.get()
     print(ix)
-#    print(str(i)+': thread ended')
     i=i+1
     if i>5:
+      print("k="+str(k))
       break;
     th = threading.Thread(target=serial_cross_corr, args=(sys.argv[1],sys.argv[2],q),daemon=True)
     th.start()
-#  print(str(i)+' dose not end')
-#  time.sleep(2)  #do other tasks
-
+    print("start thread: "+str(i))
+  k=k+1
 exit()
